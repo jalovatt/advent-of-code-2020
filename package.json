@@ -1,0 +1,30 @@
+{
+  "name": "advent-of-code-2020",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "25": "babel-node src/days/25/index.js",
+    "test": "jest --verbose",
+    "test:silent": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jalovatt/advent-of-code-2020.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jalovatt/advent-of-code-2020/issues"
+  },
+  "homepage": "https://github.com/jalovatt/advent-of-code-2020#readme",
+  "dependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@vizworx/babel-preset": "^1.1.0",
+    "@vizworx/eslint-config": "^1.2.0",
+    "babel-jest": "^26.6.3",
+    "eslint": "^6.8.0",
+    "jest": "^26.6.3"
+  }
+}
