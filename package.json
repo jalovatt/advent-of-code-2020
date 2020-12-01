@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "25": "babel-node src/days/25/index.js",
     "test": "jest --verbose",
-    "test:silent": "jest"
+    "test:silent": "jest",
+    "lint": "eslint --ext .js,.jsx ."
   },
   "repository": {
     "type": "git",

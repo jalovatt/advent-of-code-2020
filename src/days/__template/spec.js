@@ -17,7 +17,7 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
 
     xdescribe('Solution', () => {
       let solution;
-      let knownSolution;
+      const knownSolution = null;
 
       beforeAll(() => { solution = a(input); });
 
@@ -38,7 +38,7 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
 
     xdescribe('Solution', () => {
       let solution;
-      let knownSolution;
+      const knownSolution = null;
 
       beforeAll(() => { solution = b(input); });
 
