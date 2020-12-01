@@ -9,15 +9,15 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
   describe('Part 1', () => {
     describe('Tests', () => {
       test.each([
-        [1, 2],
+        ['\n1721\n979\n366\n299\n675\n1456\n', 514579],
       ])('%p => %p', (given, expected) => {
         expect(a(given)).toEqual(expected);
       });
     });
 
-    xdescribe('Solution', () => {
+    describe('Solution', () => {
       let solution;
-      let knownSolution;
+      const knownSolution = 751776;
 
       beforeAll(() => { solution = a(input); });
 
@@ -27,18 +27,18 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
     });
   });
 
-  xdescribe('Part 2', () => {
+  describe('Part 2', () => {
     describe('Tests', () => {
       test.each([
-        [1, 2],
+        ['\n1721\n979\n366\n299\n675\n1456\n', 241861950],
       ])('%p => %p', (given, expected) => {
         expect(b(given)).toEqual(expected);
       });
     });
 
-    xdescribe('Solution', () => {
+    describe('Solution', () => {
       let solution;
-      let knownSolution;
+      const knownSolution = 42275090;
 
       beforeAll(() => { solution = b(input); });
 
