@@ -1,7 +1,7 @@
 import loadText from '../../utilities/loadText';
 import { a, b } from '.';
 
-const title = 'No title yet';
+const title = 'Report Repair';
 
 const input = loadText('input.txt');
 
@@ -16,12 +16,11 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
     });
 
     describe('Solution', () => {
-      let solution;
       const knownSolution = 751776;
 
-      beforeAll(() => { solution = a(input); });
+      test(`${knownSolution}`, () => {
+        const solution = a(input);
 
-      test(`${solution}`, () => {
         expect(solution).toEqual(knownSolution);
       });
     });
@@ -37,12 +36,10 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
     });
 
     describe('Solution', () => {
-      let solution;
       const knownSolution = 42275090;
 
-      beforeAll(() => { solution = b(input); });
-
-      test(`${solution}`, () => {
+      test(`${knownSolution}`, () => {
+        const solution = b(input);
         expect(solution).toEqual(knownSolution);
       });
     });
