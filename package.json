@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest --verbose",
     "test:silent": "jest",
-    "lint": "eslint --ext .js,.jsx ."
+    "lint": "eslint --ext .js,.jsx .",
+    "day": "cp ./src/days/__template ./src/days/$(printf \"%02d\" $0) -r && xdg-open https://adventofcode.com/2020/day/$0 && yarn test days/$(printf \"%02d\" $0) --watch"
   },
   "repository": {
     "type": "git",
