@@ -45,6 +45,33 @@ export const decode = (str) => {
   return id;
 };
 
+const replaceMap = (str, lookup) => {
+  const out = [];
+
+  for (let i = 0; i < str.length; i += 1) {
+    out[i] = lookup[str[i]];
+  }
+
+  return out.join('');
+};
+
+// Clever solution, should have been obvious, thanks to jholman for the idea
+export const decodeBinary = (str) => {
+  const binary = replaceMap(str, {
+    F: 0,
+    B: 1,
+    L: 0,
+    R: 1,
+  });
+
+  const [, rawRow, rawColumn] = binary.match(/(\w{7})(\w{3})/);
+
+  const row = parseInt(rawRow, 2);
+  const column = parseInt(rawColumn, 2);
+
+  return row * 8 + column;
+};
+
 export const a = (input) => input.split('\n').reduce((acc, cur) => {
   const id = decode(cur);
 

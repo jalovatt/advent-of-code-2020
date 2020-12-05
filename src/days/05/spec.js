@@ -1,5 +1,5 @@
 import loadText from '../../utilities/loadText';
-import { decode, a, b } from '.';
+import { decode, decodeBinary, a, b } from '.';
 
 const title = 'Binary Boarding';
 
@@ -25,6 +25,19 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
         const solution = a(input);
 
         expect(solution).toEqual(knownSolution);
+      });
+    });
+  });
+
+  describe('Part 1 (treating as binary)', () => {
+    describe('Tests', () => {
+      test.each([
+        ['FBFBBFFRLR', 357],
+        ['BFFFBBFRRR', 567],
+        ['FFFBBBFRRR', 119],
+        ['BBFFBBFRLL', 820],
+      ])('%p => %p', (given, expected) => {
+        expect(decodeBinary(given)).toEqual(expected);
       });
     });
   });
