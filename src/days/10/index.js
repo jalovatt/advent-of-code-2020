@@ -17,6 +17,7 @@ export const a = (input) => {
 const INCREMENTS = [1, 2, 3];
 
 const allPathsFromSlice = (arr, [lowIndex, highIndex]) => {
+  // console.log(lowIndex, highIndex, ':', arr.slice(lowIndex, highIndex + 1).join(', '));
   if (lowIndex === highIndex) { return 1; }
 
   const toCheck = [
@@ -32,10 +33,10 @@ const allPathsFromSlice = (arr, [lowIndex, highIndex]) => {
     INCREMENTS.forEach((inc) => {
       const i = lastIndex + inc;
 
-      if (i < highIndex) {
-        toCheck.push(i);
-      } else if (i === highIndex) {
+      if (i === highIndex) {
         complete += 1;
+      } else if (i < highIndex && arr[i] - arr[lastIndex] <= 3) {
+        toCheck.push(i);
       }
     });
   }
