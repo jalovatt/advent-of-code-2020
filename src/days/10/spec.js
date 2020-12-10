@@ -6,7 +6,7 @@ const title = 'Adapter Array';
 const input = loadText('input.txt');
 
 describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
-  xdescribe('Part 1', () => {
+  describe('Part 1', () => {
     describe('Tests', () => {
       test.each([
         ['\n16\n10\n15\n5\n1\n11\n7\n19\n6\n12\n4\n', 7 * 5],
