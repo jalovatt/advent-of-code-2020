@@ -3,40 +3,30 @@ export const a = (input, turns = 2020) => {
 
   let last;
 
-  // tuples of [prevSpokenTurn, lastSpokenTurn]
-  const lastSpoken = parsed.reduce((acc, cur, i) => {
-    acc[cur] = [null, i];
+  /*
+    I originally solved this with an object of tuples [prevSpokenAt, lastSpokenAt],
+    but that took around 5 minutes to complete. Commenters on Reddit pointed out
+    that array indexing is faster than hash indexing, and I also realized the
+    lastSpokenAt value would always be i - 1 and was therefore unnecessary.
+
+    Switching to a presized array of integers brings the runtime down to 800ms.
+  */
+  const prevSpoken = parsed.reduce((acc, cur, i) => {
+    acc[cur] = i;
 
     last = cur;
 
     return acc;
-  }, {});
-
-  const t0 = Date.now();
+  }, new Array(turns));
 
   for (let i = parsed.length; i < turns; i += 1) {
-    if (i % 1000000 === 0) {
-      process.stdout.write(`i = ${i / 1000000}M (${Math.ceil((Date.now() - t0) / 1000)}s)\n`);
-    }
+    const prevSpokenAt = prevSpoken[last];
 
-    const lastWas = last;
+    prevSpoken[last] = i - 1;
 
-    const lastRecord = lastSpoken[last];
-
-    // process.stdout.write(`  last was ${lastWas}, prev ${lastRecord?.[0]}, last ${lastRecord?.[1]}\n`);
-
-    const speaking = (lastRecord[0] === null)
+    const speaking = (prevSpokenAt === undefined)
       ? 0
-      : lastRecord[1] - lastRecord[0];
-
-    if (!lastSpoken[speaking]) {
-      lastSpoken[speaking] = [null, i];
-    }
-
-    const speakingRecord = lastSpoken[speaking];
-
-    speakingRecord[0] = speakingRecord[1];
-    speakingRecord[1] = i;
+      : i - 1 - prevSpokenAt;
 
     last = speaking;
   }
@@ -44,6 +34,4 @@ export const a = (input, turns = 2020) => {
   return last;
 };
 
-export const b = (input) => {
-  return a(input, 30000000);
-};
+export const b = (input) => a(input, 30000000);
