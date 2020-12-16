@@ -1,4 +1,4 @@
-export const a = (input) => {
+const parseInput = (input) => {
   const parsed = input.trim().split('\n\n');
 
   const rulesLookup = {};
@@ -7,7 +7,7 @@ export const a = (input) => {
   parsed[0].split('\n').forEach((rule) => {
     const [, k, l1, h1, l2, h2] = rule.match(/([\sa-z]+): (\d+)-(\d+) or (\d+)-(\d+)/);
 
-    const values = [[parseInt(l1, 10), parseInt(h1, 10)], [parseInt(l2, 10), parseInt(h2, 10)]];
+    const values = [parseInt(l1, 10), parseInt(h1, 10), parseInt(l2, 10), parseInt(h2, 10)];
     rulesLookup[k] = values;
     rulesArr.push(values);
   });
@@ -15,10 +15,16 @@ export const a = (input) => {
   const ticket = parsed[1].split('\n')[1].split(',').map((v) => parseInt(v, 10));
   const tickets = parsed[2].split('\n').slice(1).map((line) => line.split(',').map((v) => parseInt(v, 10)));
 
+  return { ticket, tickets, rulesLookup, rulesArr };
+};
+
+export const a = (input) => {
+  const { tickets, rulesArr } = parseInput(input);
+
   const invalidValues = [];
   const validTicketIndices = [];
 
-  const isValidNumber = (n) => rulesArr.some(([[l1, h1], [l2, h2]]) => (
+  const isValidNumber = (n) => rulesArr.some(([l1, h1, l2, h2]) => (
     (l1 <= n && n <= h1)
     || (l2 <= n && n <= h2)
   ));
@@ -41,38 +47,22 @@ export const a = (input) => {
 };
 
 export const b = (input) => {
-  const parsed = input.trim().split('\n\n');
+  const { ticket, tickets, rulesLookup, rulesArr } = parseInput(input);
 
-  const rulesLookup = {};
-  const rulesArr = [];
-
-  parsed[0].split('\n').forEach((rule) => {
-    const [, k, l1, h1, l2, h2] = rule.match(/([\sa-z]+): (\d+)-(\d+) or (\d+)-(\d+)/);
-
-    const values = [[parseInt(l1, 10), parseInt(h1, 10)], [parseInt(l2, 10), parseInt(h2, 10)]];
-    rulesLookup[k] = values;
-    rulesArr.push(values);
-  });
-
-  const ruleKeys = Object.keys(rulesLookup);
-
-  const ticket = parsed[1].split('\n')[1].split(',').map((v) => parseInt(v, 10));
-
-  const tickets = parsed[2].split('\n').slice(1).map((line) => line.split(',').map((v) => parseInt(v, 10)));
-
-  const isValidNumber = (n) => rulesArr.some(([[l1, h1], [l2, h2]]) => (
+  const isValidNumber = (n) => rulesArr.some(([l1, h1, l2, h2]) => (
     (l1 <= n && n <= h1)
     || (l2 <= n && n <= h2)
   ));
 
-  const validTickets = tickets.filter((t) => t.every(isValidNumber));
-
   const isValidFor = (n, k) => {
-    const [[l1, h1], [l2, h2]] = rulesLookup[k];
+    const [l1, h1, l2, h2] = rulesLookup[k];
 
     return (l1 <= n && n <= h1) || (l2 <= n && n <= h2);
   };
 
+  const validTickets = tickets.filter((t) => t.every(isValidNumber));
+
+  const ruleKeys = Object.keys(rulesLookup);
   const possiblePositionRules = new Array(ticket.length).fill().map(() => ({}));
 
   validTickets.forEach((t) => {
