@@ -1,12 +1,12 @@
 import loadText from '../../utilities/loadText';
 import { a, b } from '.';
 
-const title = 'No title yet';
+const title = 'Operation Order';
 
 const input = loadText('input.txt');
 
 describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
-  xdescribe('Part 1', () => {
+  describe('Part 1', () => {
     describe('Tests', () => {
       test.each([
         ['2 * 3 + (4 * 5)', 26],
@@ -37,13 +37,16 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
         ['5 + (8 * 3 + 9 + 3 * 4 * 3)', 1445],
         ['5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))', 669060],
         ['((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2', 23340],
+
+        // Cases from input
+        ['( 5 * 4 + 6 * 6 * 7 ) * ( 3 * 4 * ( 9 * 5 ) )', 1134000],
       ])('%p => %p', (given, expected) => {
         expect(b(given)).toEqual(expected);
       });
     });
 
-    xdescribe('Solution', () => {
-      const knownSolution = null;
+    describe('Solution', () => {
+      const knownSolution = 323802071857594;
 
       test(`${knownSolution}`, () => {
         const solution = b(input);
