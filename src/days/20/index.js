@@ -105,13 +105,13 @@ const matchedTiles = {};
 /**
  * Returns [ [id, rotation] ]
  */
-const tilesMatching = (edge, edgeDir, tilesArr) => {
-  if (!matchedTiles[edge]?.[edgeDir]) {
+const tilesMatching = (edge, matchDir, tilesArr) => {
+  if (!matchedTiles[edge]?.[matchDir]) {
     if (!matchedTiles[edge]) { matchedTiles[edge] = {}; }
 
     const out = [];
 
-    const matchDir = matchDirections[edgeDir];
+    // const matchDir = matchDirections[edgeDir];
 
     tilesArr.forEach((t) => {
       for (let i = 0; i < rotations.length - 1; i += 1) {
@@ -122,10 +122,10 @@ const tilesMatching = (edge, edgeDir, tilesArr) => {
       }
     });
 
-    matchedTiles[edge][edgeDir] = out;
+    matchedTiles[edge][matchDir] = out;
   }
 
-  return matchedTiles[edge]?.[edgeDir];
+  return matchedTiles[edge]?.[matchDir];
 };
 
 const newGrid = (length) => new Array(length).fill(null).map(() => new Array(length).fill(null));
@@ -166,6 +166,20 @@ const filterUsed = (grid, possible) => possible.filter(([id]) => {
   return true;
 });
 
+const getUsed = (grid) => {
+  const out = [];
+
+  for (let y = 0; y < grid.length; y += 1) {
+    for (let x = 0; x < grid.length; x += 1) {
+      const v = grid[y]?.[x];
+
+      if (v) { out.push(v); }
+    }
+  }
+
+  return true;
+};
+
 let tLast = Date.now();
 
 const tryGrid = (grid, tiles, pos = 1) => {
@@ -183,22 +197,28 @@ const tryGrid = (grid, tiles, pos = 1) => {
 
   // console.log('pos y', y, ', x', x);
 
-  let possible = [];
+  let possible = new Set();
+
+  // console.dir(tiles.arr);
+  // const available = filterUsed(grid, tiles.arr);
+  let used = getUsed(grid);
+
+  // console.dir(available);
 
   if (x > 0) {
     const [wId, wRotation] = grid[y][x - 1];
 
     const w = tiles.lookup[wId].edges[wRotation];
-    possible.push(...tilesMatching(w.E, 'E', tiles.arr));
+    tilesMatching(w.E, 'W', tiles.arr).forEach((t) => possible.add(t));
   }
 
   if (y > 0) {
     const [nId, nRotation] = grid[y - 1][x];
     const n = tiles.lookup[nId].edges[nRotation];
-    possible.push(...tilesMatching(n.S, 'S', tiles.arr));
+    tilesMatching(n.S, 'N', tiles.arr).forEach((t) => possible.add(t));
   }
 
-  possible = filterUsed(grid, possible);
+  possible = filterUsed(grid, Array.from(possible));
   // console.dir(possible);
 
   // process.stderr.write(`    ${possible.length} possible\n`);
