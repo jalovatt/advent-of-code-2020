@@ -38,8 +38,8 @@ const transformEdges = (edges) => ({
   180: {
     N: reverseEdge(edges.S),
     E: reverseEdge(edges.W),
-    W: reverseEdge(edges.N),
-    S: reverseEdge(edges.E),
+    W: reverseEdge(edges.E),
+    S: reverseEdge(edges.N),
   },
   270: {
     N: reverseEdge(edges.W),
@@ -101,13 +101,14 @@ const rotations = ['0', '90', '180', '270', 'f0', 'f90', 'f180', 'f270'];
 const directions = ['N', 'E', 'W', 'S'];
 const matchDirections = { N: 'S', E: 'W', W: 'E', S: 'N' };
 
+const tileTuples = {};
 const matchedTiles = {};
 /**
  * Returns [ [id, rotation] ]
  */
-const tilesMatching = (edge, matchDir, tilesArr) => {
-  if (!matchedTiles[edge]?.[matchDir]) {
-    if (!matchedTiles[edge]) { matchedTiles[edge] = {}; }
+const tilesMatching = (wEdge, nEdge, tilesArr) => {
+  if (!matchedTiles[wEdge]?.[nEdge]) {
+    if (!matchedTiles[wEdge]) { matchedTiles[wEdge] = {}; }
 
     const out = [];
 
@@ -116,16 +117,27 @@ const tilesMatching = (edge, matchDir, tilesArr) => {
     tilesArr.forEach((t) => {
       for (let i = 0; i < rotations.length - 1; i += 1) {
         const rotation = rotations[i];
-        if (t.edges[rotation][matchDir] === edge) {
-          out.push([t.id, rotation]);
+        const edges = t.edges[rotation];
+
+        if (
+          (!wEdge || edges.W === wEdge)
+          &&
+          (!nEdge || edges.N === nEdge)
+        ) {
+          if (!tileTuples[t.id]?.[rotation]) {
+            if (!tileTuples[t.id]) { tileTuples[t.id] = {}; }
+            tileTuples[t.id][rotation] = [t.id, rotation];
+          }
+
+          out.push(tileTuples[t.id][rotation]);
         }
       }
     });
 
-    matchedTiles[edge][matchDir] = out;
+    matchedTiles[wEdge][nEdge] = out;
   }
 
-  return matchedTiles[edge]?.[matchDir];
+  return matchedTiles[wEdge]?.[nEdge];
 };
 
 const newGrid = (length) => new Array(length).fill(null).map(() => new Array(length).fill(null));
@@ -156,75 +168,58 @@ const printGrid = (grid) => {
   console.log(`\n${out.join('\n')}\n`);
 };
 
-const filterUsed = (grid, possible) => possible.filter(([id]) => {
-  for (let y = 0; y < grid.length; y += 1) {
-    for (let x = 0; x < grid.length; x += 1) {
-      if (grid[y][x]?.[0] === id) { return false; }
-    }
-  }
-
-  return true;
-});
-
 const getUsed = (grid) => {
-  const out = [];
+  const out = {};
 
   for (let y = 0; y < grid.length; y += 1) {
     for (let x = 0; x < grid.length; x += 1) {
       const v = grid[y]?.[x];
 
-      if (v) { out.push(v); }
+      if (!v) { return out; }
+
+      out[v[0]] = true;
     }
   }
 
-  return true;
+  return out;
 };
 
 let tLast = Date.now();
 
+let maxPos = [0, null];
+
 const tryGrid = (grid, tiles, pos = 1) => {
+  if (pos > maxPos[0]) {
+    maxPos = [pos, grid];
+  }
+
   // Full!!
   if (pos >= tiles.arr.length) { return grid; }
-
-  if (pos < 25) {
-    const t = Date.now();
-    process.stderr.write(`    ${' '.repeat(pos - 1)}pos ${pos} (${(t - tLast) / 1000}s)\n`);
-    tLast = t;
-  }
 
   const x = pos % grid.length;
   const y = Math.floor(pos / grid.length);
 
-  // console.log('pos y', y, ', x', x);
+  const used = getUsed(grid);
 
-  let possible = new Set();
-
-  // console.dir(tiles.arr);
-  // const available = filterUsed(grid, tiles.arr);
-  let used = getUsed(grid);
-
-  // console.dir(available);
-
+  let wEdge;
   if (x > 0) {
     const [wId, wRotation] = grid[y][x - 1];
-
-    const w = tiles.lookup[wId].edges[wRotation];
-    tilesMatching(w.E, 'W', tiles.arr).forEach((t) => possible.add(t));
+    wEdge = tiles.lookup[wId].edges[wRotation].E;
   }
 
+  let nEdge;
   if (y > 0) {
     const [nId, nRotation] = grid[y - 1][x];
-    const n = tiles.lookup[nId].edges[nRotation];
-    tilesMatching(n.S, 'N', tiles.arr).forEach((t) => possible.add(t));
+    nEdge = tiles.lookup[nId].edges[nRotation].S;
   }
 
-  possible = filterUsed(grid, Array.from(possible));
-  // console.dir(possible);
+  const possible = tilesMatching(wEdge, nEdge, tiles.arr).filter((p) => !used[p[0]]);
 
-  // process.stderr.write(`    ${possible.length} possible\n`);
-  // if (pos === 1) {
-  // process.stderr.write(`    pos ${pos}, ${possible.length} possible\n`);
-  // }
+  if (pos < 20) {
+    const t = Date.now();
+    process.stderr.write(`   ${' '.repeat(pos)}@ ${pos}    ${possible.length} possible    (${(t - tLast) / 1000}s)\n`);
+    tLast = t;
+  }
 
   for (let i = 0; i < possible.length; i += 1) {
     const cloned = cloneGrid(grid);
@@ -236,6 +231,14 @@ const tryGrid = (grid, tiles, pos = 1) => {
   }
 
   return false;
+};
+
+const renderTile = (tile, rotation) => {
+
+};
+
+const renderImage = (grid) => {
+
 };
 
 // Uses global memoization, so the test and solution must be run in isolation
@@ -259,13 +262,14 @@ export const a = (input) => {
 
   let solution;
 
+  process.stderr.write(`${tiles.arr.length} tiles...`);
+
   for (let i = 0; i < tiles.arr.length; i += 1) {
+    process.stderr.write(`\nstarting tile ${i}: ${tiles.arr[i].id}\n`);
     for (let r = 0; r < rotations.length; r += 1) {
       const baseGrid = newGrid(Math.sqrt(tiles.arr.length));
 
       baseGrid[0][0] = [tiles.arr[i].id, rotations[r]];
-
-      // printGrid(baseGrid);
 
       const result = tryGrid(baseGrid, tiles);
 
@@ -277,11 +281,18 @@ export const a = (input) => {
       }
     }
 
-    process.stderr.write(`finished tile ${i}: ${tiles.arr[i].id}\n`);
-    if (i > 10) return;
+    if (solution) {
+      break;
+    }
+
+    process.stderr.write(`\nfinished tile ${i}: ${tiles.arr[i].id}\n------------------------\n`);
   }
 
+  console.log('maxPos:', maxPos[0]);
+  printGrid(maxPos[1]);
   // printGrid(solution);
+
+  // renderImage(solution, tiles.lookup);
 
   const solutionIDs = [
     solution[0][0],
