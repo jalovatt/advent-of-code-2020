@@ -98,8 +98,6 @@ const getAllEdgeValues = (image) => {
 };
 
 const rotations = ['0', '90', '180', '270', 'f0', 'f90', 'f180', 'f270'];
-const directions = ['N', 'E', 'W', 'S'];
-const matchDirections = { N: 'S', E: 'W', W: 'E', S: 'N' };
 
 const tileTuples = {};
 const matchedTiles = {};
@@ -121,6 +119,7 @@ const tilesMatching = (wEdge, nEdge, tilesArr) => {
 
         if (
           (!wEdge || edges.W === wEdge)
+          // eslint-disable-next-line operator-linebreak
           &&
           (!nEdge || edges.N === nEdge)
         ) {
@@ -184,15 +183,7 @@ const getUsed = (grid) => {
   return out;
 };
 
-let tLast = Date.now();
-
-let maxPos = [0, null];
-
 const tryGrid = (grid, tiles, pos = 1) => {
-  if (pos > maxPos[0]) {
-    maxPos = [pos, grid];
-  }
-
   // Full!!
   if (pos >= tiles.arr.length) { return grid; }
 
@@ -215,12 +206,6 @@ const tryGrid = (grid, tiles, pos = 1) => {
 
   const possible = tilesMatching(wEdge, nEdge, tiles.arr).filter((p) => !used[p[0]]);
 
-  if (pos < 20) {
-    const t = Date.now();
-    process.stderr.write(`   ${' '.repeat(pos)}@ ${pos}    ${possible.length} possible    (${(t - tLast) / 1000}s)\n`);
-    tLast = t;
-  }
-
   for (let i = 0; i < possible.length; i += 1) {
     const cloned = cloneGrid(grid);
     cloned[y][x] = possible[i];
@@ -233,22 +218,12 @@ const tryGrid = (grid, tiles, pos = 1) => {
   return false;
 };
 
-const renderTile = (tile, rotation) => {
-
-};
-
-const renderImage = (grid) => {
-
-};
-
 // Uses global memoization, so the test and solution must be run in isolation
 export const a = (input) => {
   const tiles = input.trim().split('\n\n').reduce((acc, t) => {
     const [label, ...content] = t.split('\n');
 
     const id = label.match(/(\d+)/)[1];
-
-    content.forEach((line, i) => { content[i] = line.replace(/./g, (v) => (v === '#' ? 1 : 0)); });
 
     const edges = getAllEdgeValues(content);
 
@@ -262,18 +237,13 @@ export const a = (input) => {
 
   let solution;
 
-  process.stderr.write(`${tiles.arr.length} tiles...`);
-
   for (let i = 0; i < tiles.arr.length; i += 1) {
-    process.stderr.write(`\nstarting tile ${i}: ${tiles.arr[i].id}\n`);
     for (let r = 0; r < rotations.length; r += 1) {
       const baseGrid = newGrid(Math.sqrt(tiles.arr.length));
 
       baseGrid[0][0] = [tiles.arr[i].id, rotations[r]];
 
       const result = tryGrid(baseGrid, tiles);
-
-      process.stderr.write(`  finished rotation ${r}: ${rotations[r]}\n`);
 
       if (result) {
         solution = result;
@@ -284,24 +254,154 @@ export const a = (input) => {
     if (solution) {
       break;
     }
-
-    process.stderr.write(`\nfinished tile ${i}: ${tiles.arr[i].id}\n------------------------\n`);
   }
 
-  console.log('maxPos:', maxPos[0]);
-  printGrid(maxPos[1]);
-  // printGrid(solution);
+  printGrid(solution);
 
-  // renderImage(solution, tiles.lookup);
-
-  const solutionIDs = [
-    solution[0][0],
-    solution[solution.length - 1][0],
-    solution[solution.length - 1][solution.length - 1],
-    solution[0][solution.length - 1],
-  ];
-
-  return solutionIDs.reduce((acc, cur) => acc * parseInt(cur[0], 10), 1);
+  return [solution, tiles.lookup];
 };
 
-export const b = (input) => {};
+export const multiplyCorners = (grid) => {
+  const cornerIDs = [
+    grid[0][0],
+    grid[grid.length - 1][0],
+    grid[grid.length - 1][grid.length - 1],
+    grid[0][grid.length - 1],
+  ];
+
+  return cornerIDs.reduce((acc, cur) => acc * parseInt(cur[0], 10), 1);
+};
+
+// CCW
+const arrayRotations = {
+  0: (y, x) => [y, x],
+  90: (y, x, n) => [n - x - 1, y],
+  180: (y, x, n) => [n - y - 1, n - x - 1],
+  270: (y, x, n) => [x, n - y - 1],
+  f0: (y, x, n) => [y, n - x - 1],
+  f90: (y, x) => [x, y],
+  f180: (y, x, n) => [n - y - 1, x],
+  f270: (y, x, n) => [n - x - 1, n - y - 1],
+};
+
+const rotate2DArray = (arr, rotation) => {
+  const out = new Array(arr.length).fill(null).map(() => new Array(arr.length));
+
+  const rot = arrayRotations[rotation];
+  const n = arr.length;
+
+  for (let y = 0; y < n; y += 1) {
+    for (let x = 0; x < n; x += 1) {
+      const [yNew, xNew] = rot(y, x, n);
+
+      out[yNew][xNew] = arr[y][x];
+    }
+  }
+
+  return out;
+};
+
+const stripTileBorders = (content) => {
+  const out = [];
+
+  for (let i = 1; i < content.length - 1; i += 1) {
+    out.push(content[i].slice(1, -1));
+  }
+
+  return out;
+};
+
+const renderTile = ({ content }, rotation) => {
+  const stripped = stripTileBorders(content);
+  const rotated = rotate2DArray(stripped, rotation);
+
+  return rotated;
+};
+
+const renderImage = (grid, tilesLookup) => {
+  const out = [];
+
+  grid.forEach((row) => {
+    const tiles = row.map((t) => renderTile(tilesLookup[t[0]], t[1]));
+
+    for (let i = 0; i < (SIDE_LENGTH - 2); i += 1) {
+      out.push([].concat(...tiles.map((t) => t[i])));
+    }
+  });
+
+  return out;
+};
+
+const MONSTER = '                  # \n#    ##    ##    ###\n #  #  #  #  #  #   ';
+const MONSTER_LENGTH = 20;
+const MONSTER_HEIGHT = 3;
+const MONSTER_SEGMENTS = 15;
+
+const countMonsters = (() => {
+  const positions = [];
+
+  MONSTER.split('\n').forEach((line, lineIndex) => line.split('').forEach((c, cIndex) => {
+    if (c === ' ') { return; }
+
+    positions.push([lineIndex, cIndex]);
+  }));
+
+  return (image, mark = false) => {
+    let count = 0;
+
+    for (let y = 0; y < image.length - MONSTER_HEIGHT + 1; y += 1) {
+      for (let x = 0; x < image.length - MONSTER_LENGTH + 1; x += 1) {
+        if (positions.every(([yCheck, xCheck]) => image[y + yCheck][x + xCheck] === '#')) {
+          count += 1;
+
+          if (mark) {
+            positions.forEach(([yCheck, xCheck]) => {
+              // eslint-disable-next-line no-param-reassign
+              image[y + yCheck][x + xCheck] = 'O';
+            });
+          }
+        }
+      }
+    }
+
+    return count;
+  };
+})();
+
+export const b = (input) => {
+  const [grid, tilesLookup] = a(input);
+
+  const image = renderImage(grid, tilesLookup);
+
+  let nMonsters = 0;
+  let finalImage;
+
+  const totalWaves = image.reduce((acc, row) => {
+    for (let i = 0; i < row.length; i += 1) {
+      if (row[i] === '#') {
+        // eslint-disable-next-line no-param-reassign
+        acc += 1;
+      }
+    }
+
+    return acc;
+  }, 0);
+
+  for (let i = 0; i < rotations.length; i += 1) {
+    const r = rotations[i];
+
+    const rotated = rotate2DArray(image, r);
+
+    const count = countMonsters(rotated, true);
+
+    if (count) {
+      [nMonsters, finalImage] = [count, rotated];
+      break;
+    }
+  }
+
+  // eslint-disable-next-line no-console
+  console.dir(finalImage.map((row) => row.join('')).join('\n'));
+
+  return totalWaves - (nMonsters * MONSTER_SEGMENTS);
+};
