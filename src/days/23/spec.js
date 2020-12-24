@@ -1,18 +1,18 @@
 import loadText from '../../utilities/loadText';
-import { a, b } from '.';
+import { a } from '.';
 
 const title = 'Crab Cups';
 
 const input = loadText('input.txt');
 
 describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
-  describe('Part 1', () => {
+  xdescribe('Part 1', () => {
     describe('Tests', () => {
       test.each([
-        [['389125467', 10], 92658374],
-        [['389125467', 100], 67384529],
-      ])('%p => %p', ([labels, times], expected) => {
-        expect(a(labels, times)).toEqual(expected);
+        [['389125467', 9, 10], 92658374],
+        [['389125467', 9, 100], 67384529],
+      ])('%p => %p', ([labels, cups, times], expected) => {
+        expect(a(labels, cups, times)).toEqual(expected);
       });
     });
 
@@ -20,27 +20,27 @@ describe(`Day ${__filename.match(/\/([^/]+)\/spec/)[1]} - ${title}`, () => {
       const knownSolution = 49725386;
 
       test(`${knownSolution}`, () => {
-        const solution = a(input, 100);
+        const solution = a(input, 9, 100);
 
         expect(solution).toEqual(knownSolution);
       });
     });
   });
 
-  xdescribe('Part 2', () => {
+  describe('Part 2', () => {
     describe('Tests', () => {
       test.each([
-        [1, 2],
-      ])('%p => %p', (given, expected) => {
-        expect(b(given)).toEqual(expected);
+        [['389125467', 1000000, 10000000, true], 149245887792],
+      ])('%p => %p', ([labels, cups, times], expected) => {
+        expect(a(labels, cups, times, true)).toEqual(expected);
       });
     });
 
-    xdescribe('Solution', () => {
-      const knownSolution = null;
+    describe('Solution', () => {
+      const knownSolution = 538935646702;
 
       test(`${knownSolution}`, () => {
-        const solution = b(input);
+        const solution = a(input, 1000000, 10000000, true);
 
         expect(solution).toEqual(knownSolution);
       });

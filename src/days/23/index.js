@@ -1,118 +1,101 @@
-const modAdd = (n, v) => (v + n) % n;
+class LLNode {
+  constructor(value) {
+    this.value = value;
+    this.next = undefined;
 
-const LENGTH = 9;
+    this.removeArrs = [];
+  }
 
-const shouldLog = false;
-const log = (str) => { if (shouldLog) { process.stderr.write(`${str}\n`); } };
+  insertAfter(nodes) {
+    const oldNext = this.next;
 
-const wrapValue = (v) => {
-  let out = v - 1;
-  if (out < 1) { out = 9; }
+    // eslint-disable-next-line prefer-destructuring
+    this.next = nodes[0];
+    // eslint-disable-next-line no-param-reassign
+    nodes[nodes.length - 1].next = oldNext;
+  }
 
-  return out;
-};
+  removeAfter(n) {
+    if (!this.removeArrs[n]) { this.removeArrs[n] = new Array(n); }
 
-export const a = (input, times) => {
-  const arrays = [input.split('').map((v) => parseInt(v, 10)), new Array(input.length)];
+    const out = this.removeArrs[n];
+    for (let i = 0; i < n; i += 1) {
+      const cur = this.next;
+      out[i] = cur;
 
-  const arr = arrays[0];
+      this.next = cur.next;
+    }
 
-  const modLength = modAdd.bind(undefined, LENGTH);
+    return out;
+  }
+}
 
-  let curIndex = 0;
+// eslint-disable-next-line import/prefer-default-export
+export const a = (input, cups, times, isPartB = false) => {
+  const length = Math.max(input.length, cups);
+
+  const arr = new Array(length);
+
+  const tempHead = new LLNode();
+  let tail = tempHead;
+
+  for (let i = 0; i < input.length; i += 1) {
+    const v = parseInt(input[i], 10);
+    arr[v] = new LLNode(v);
+    tail.next = arr[v];
+
+    tail = arr[v];
+  }
+
+  if (cups > input.length) {
+    for (let i = 10; i <= cups; i += 1) {
+      const v = parseInt(i, 10);
+
+      arr[v] = new LLNode(v);
+      tail.next = arr[v];
+
+      tail = arr[v];
+    }
+  }
+
+  let curValue = tempHead.next.value;
+
+  tail.next = tempHead.next;
 
   for (let t = 0; t < times; t += 1) {
-    log(`\n${t}:\n${arr.join(' ')}`);
-    const curValue = arr[curIndex];
+    const cur = arr[curValue];
 
-    log(`cur = ${curValue} @ ${curIndex}`);
+    const pick = cur.removeAfter(3);
 
-    const picked = arr.splice(curIndex + 1, 3);
+    let destValue = curValue - 1;
+    if (destValue < 1) { destValue = length; }
 
-    if (picked.length < 3) {
-      picked.push(...arr.splice(0, 3 - picked.length));
+    // eslint-disable-next-line no-loop-func
+    while (pick.find((n) => n.value === destValue)) {
+      destValue -= 1;
+      if (destValue < 1) { destValue = length; }
     }
 
-    log(`picked ${picked.join(', ')}`);
-    log(`rest ${arr.join(' ')}`);
+    arr[destValue].insertAfter(pick);
 
-    let destIndex = -1;
-    let destValue = modLength(curValue - 1);
-    if (destValue < 1) { destValue = 9; }
+    curValue = cur.next.value;
+  }
 
-    while (destIndex === -1) {
-      destIndex = arr.indexOf(destValue);
+  if (!isPartB) {
+    const out = [];
+    let cur = arr[1].next;
 
-      log(`    dest? ${arr[destIndex]} @ ${destIndex} (looking for ${destValue})`);
-
-      destValue = modLength(destValue - 1);
-
-      if (!destValue || destValue < 1) { destValue = 9; }
+    for (let i = 1; i < arr.length - 1; i += 1) {
+      out.push(cur.value);
+      cur = cur.next;
     }
 
-    log(`dest ${arr[destIndex]} @ ${destIndex}`);
-
-    arr.splice(destIndex + 1, 0, ...picked);
-
-    const newCurIndex = arr.indexOf(curValue);
-    curIndex = modLength(newCurIndex + 1);
-
-    log(`cur cup now at ${newCurIndex}`);
-
-    log(`${arr.join(' ')}`);
+    return parseInt(out.join(''), 10);
   }
 
-  log(`\nfinal:\n${arr.join(' ')}`);
+  const one = arr[1];
+  const j = one.next.value;
+  const k = one.next.next.value;
 
-  const start = arr.indexOf(1) + 1;
-
-  const out = [];
-
-  for (let i = 0; i < arr.length - 1; i += 1) {
-    out.push(arr[modLength(start + i)]);
-  }
-
-  return parseInt(out.join(''), 10);
-  // let fromArray = 0;
-  // let curIndex = 0;
-
-  // for (let t = 0; t < 2 /* times */; t += 1) {
-  //   const [from, to] = [arrays[fromArray], arrays[1 - fromArray]];
-
-  //   log(`\n${t}:\n${from.join(' ')}`);
-
-  //   const pickIndices = [curIndex + 1, curIndex + 2, curIndex + 3];
-
-  //   let destIndex;
-  //   let destValue = modLength(from[curIndex] - 1);
-
-  //   do {
-  //     destIndex = from.indexOf(destValue);
-  //     destValue = modLength(destValue - 1);
-  //   } while (modLength(destIndex - curIndex) < 3 && modLength(destIndex - curIndex) !== curIndex);
-
-  //   log(`dest ${from[destIndex]}@${destIndex}`);
-
-  //   to[modLength(destIndex - 3)] = from[destIndex];
-  //   log(`\n${to[destIndex]}@${[destIndex]}`);
-
-  //   log('picks:');
-  //   for (let i = 1; i < 4; i += 1) {
-  //     const toIndex = modLength(destIndex + i);
-  //     const fromIndex = modLength(curIndex + i);
-  //     log(`${from[fromIndex]}@${toIndex}`);
-  //     to[toIndex] = from[fromIndex];
-  //   }
-
-  //   for (let i = 5; i < 10; i += 1) {
-  //     to[modLength(destIndex + i)] = from[modLength(destIndex + i - 4)];
-  //   }
-
-  //   console.dir(to);
-
-  //   curIndex = modLength(curIndex + 1);
-  //   fromArray = 1 - fromArray;
-  // }
+  return j * k;
 };
-
-export const b = (input) => {};
